@@ -1,17 +1,17 @@
 import os
+from dotenv import load_dotenv
 import pandas as pd
 import requests
 import json
 
-# Project root
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Assumes run from project root (e.g. PyCharm run config with Working directory = project root)
 
 
 def import_dataset(filename=None, encoding=None):
     """
     Imports dataset in csv format from scrapers/data/
     """
-    csv_path = os.path.join(_PROJECT_ROOT, 'scrapers', 'data', filename + '_articles.csv')
+    csv_path = os.path.join('scrapers', 'data', filename + '_articles.csv')
     if not os.path.isfile(csv_path):
         raise FileNotFoundError(f"Dataset not found: {csv_path}")
     with open(csv_path, encoding=encoding or 'utf-8') as inputfile:
@@ -21,7 +21,8 @@ def import_dataset(filename=None, encoding=None):
 
 def main():
 
-    news_source = 'efsyn'
+    load_dotenv()
+    news_source = 'news247'
     articles_df = import_dataset(news_source)
     articles_df = articles_df.reset_index(drop=True)  # make sure indexes pair with number of rows
     articles_classes = []
@@ -32,15 +33,15 @@ def main():
         text = row['Article']
 
         data = {
-            "model": "ilsp_llama-krikri-8b-instruct",
+            "model": os.getenv('MODEL'),
             "messages": [
                     {
                         "role": "system",
-                        "content": "You are an AI article classifier. The output you give needs to be a single string in order to be processed by a software. The user will be sending you news articles in the Greek language about the delivery platform company efood that need to be classified. You need to analsyze each particular news article seperately and tell if it is positive or negative about the company. You need to answer strictly in a single word: positive or negative. Do not send any thoughts."
+                        "content":  os.getenv('PROMPT_SYSTEM')
                     },
                     {
                         "role": "user",
-                        "content": "I want to know whether the following news article in greek is positive or negative about the delivery platform company efood. I want an answer in a single word only (positive or negative) and only about the following article. The article is here:"+text
+                        "content": os.getenv('PROMPT_USER')+text
                     }
             ],
             "temperature": 0.7,
@@ -57,8 +58,7 @@ def main():
     # Column length must match dataframe length
     articles_df['Class'] = articles_classes
     print(articles_df)
-    articles_df.to_csv(r'data/'+news_source+'_articles_classified.csv', index=False, sep=',', header=True)
-
+    articles_df.to_csv(r'classifier/data/'+news_source + '_articles_classified.csv', index=False, sep=',', header=True)
 
 # Run
 if __name__ == '__main__':

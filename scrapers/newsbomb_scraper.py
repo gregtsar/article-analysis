@@ -30,10 +30,10 @@ def main():
     desired_queries = search_keywords.split(',')
 
     # Search scope
-    source = "efsyn.gr"
-    search_page_url = 'https://www.efsyn.gr/search?keywords='
+    source = "newsbomb.gr"
+    search_page_url = 'https://www.newsbomb.gr/search?q='
     page = 0
-    end_page = 13
+    end_page = 4
 
     # Set storage
     link_results = []
@@ -52,15 +52,16 @@ def main():
             soup = create_soup_from_url(url=search_page_url + quote(query) + '&page=' + str(page))
 
             # Extracting number of link_results
-            search = soup.find('div', attrs={'class': 'default-list'}).findAll('article')
+            search = soup.find('div', attrs={'class': 'news-items'}).findAll('div', attrs={'class': 'flat-card'})
 
             # Search for articles within given tag:
             for s in search:
-                articles = soup.find('div', attrs={'class': 'default-list'}).findAll('article')
+                articles = soup.find('div', attrs={'class': 'news-items'}).findAll('div', attrs={'class': 'flat-card'})
 
                 # Extract the link of each article:
                 for a in articles:
-                    links = "https://efsyn.gr"+a.contents[1].get('href')
+
+                    links = "https://www.newsbomb.gr"+a.find('h3', attrs={'class': 'item-title'}).find('a').get('href')
                     # print(links)
                     link_results.append(links)
 
@@ -72,7 +73,7 @@ def main():
 
         # Get article body
         try:
-            article_body = soup.find('div', attrs={'class': 'article__body'}).findAll('p', recursive=False)
+            article_body = soup.find('div', attrs={'class': 'main-text'}).findAll('p', recursive=False)
         except:
             # Process article only if body is available
             continue
@@ -90,7 +91,7 @@ def main():
 
         # Get article title
         try:
-            article_title = soup.find('section', attrs={'class': 'article__top'}).find('h1', recursive=False)
+            article_title = soup.find('div', attrs={'class': 'item-title-area'}).find('h1', recursive=False)
             title_results.append(article_title.text)
         except:
            article_title = 'N/A'
@@ -98,7 +99,7 @@ def main():
 
         # Get article date
         try:
-            article_date = soup.find('div', attrs={'class': 'article__info'}).find('time')
+            article_date = soup.find('div', attrs={'class': 'main-meta'}).find('time')
             # Custom process date to YY-M-D
             date_raw = article_date['datetime']
             date_processed = date_raw[: 10]
@@ -122,7 +123,7 @@ def main():
     print(articles_df)
 
     # Save to CSV
-    articles_df.to_csv(r'data/efsyn_articles.csv', index=False, sep=',', header=True)
+    articles_df.to_csv(r'data/newsbomb_articles.csv', index=False, sep=',', header=True)
 
     # Development sanity checks:
     print(link_results)
