@@ -32,7 +32,7 @@ def main():
     # Search scope
     source = "newsit.gr"
     page = 1
-    end_page = 2
+    end_page = 4
     search_page_url = 'https://www.newsit.gr/page/'
 
 
@@ -123,7 +123,7 @@ def main():
     print(articles_df)
 
     # Save to CSV
-    articles_df.to_csv(r'data/newsit_articles.csv', index=False, sep=',', header=False)
+    articles_df.to_csv(r'data/newsit_articles.csv', index=False, sep=',', header=True)
 
     # Development sanity checks:
     print(link_results)
